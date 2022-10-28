@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MvcMovie.Data;
 using MvcMovie.Models;
+using MvcMovie.Models.DTO;
 
 namespace MvcMovie.Controllers
 {
@@ -58,7 +60,7 @@ namespace MvcMovie.Controllers
                 return NotFound();
             }
 
-            return View(movie);
+            return View(new MovieDTO(movie));
         }
 
         // GET: Movies/Create
@@ -80,7 +82,7 @@ namespace MvcMovie.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(movie);
+            return View(new MovieDTO(movie));
         }
 
         // GET: Movies/Edit/5
@@ -96,7 +98,7 @@ namespace MvcMovie.Controllers
             {
                 return NotFound();
             }
-            return View(movie);
+            return View(new MovieDTO(movie));
         }
 
         // POST: Movies/Edit/5
@@ -104,7 +106,7 @@ namespace MvcMovie.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,ReleaseDate,Genre,Price,Rating")] Movie movie)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,ReleaseDate,Genre,Price,Rating,Image")] MovieDTO movie)
         {
             if (id != movie.Id)
             {
@@ -115,7 +117,29 @@ namespace MvcMovie.Controllers
             {
                 try
                 {
-                    _context.Update(movie);
+                    if (movie.Image is not null)
+                    {
+                        if (movie.Image.ContentType == "image/png")
+                        {
+                            using (var memoryStream = new MemoryStream())
+                            {
+                                await movie.Image.CopyToAsync(memoryStream);
+                                var m = movie.ToMovie();
+                                m.Image = memoryStream.ToArray();
+                                _context.Update(m);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var m = movie.ToMovie();
+                        var oldImage = await _context.Movie.FirstOrDefaultAsync(m => m.Id == id);
+                        m.Image = oldImage.Image;
+
+                        _context.Entry(oldImage).State = EntityState.Detached;
+                        _context.Update(m);
+                        _context.SaveChanges();
+                    }
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -170,12 +194,11 @@ namespace MvcMovie.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
         public async Task<ActionResult> RenderImage(int id)
         {
             var item = await _context.Movie.FindAsync(id);
-
-            byte[] photoBack = item.Image!;
-
+            byte[] photoBack = item!.Image!;
             return File(photoBack, "image/png");
         }
 

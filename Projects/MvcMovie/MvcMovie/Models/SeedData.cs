@@ -14,13 +14,13 @@ namespace MvcMovie.Models
                 serviceProvider.GetRequiredService<
                     DbContextOptions<MvcMovieContext>>()))
             {
-                var defaultImage = File.ReadAllBytes(Directory.GetCurrentDirectory() + "\\noimage.png");
-
                 // Look for any movies.
                 if (context.Movie.Any())
                 {
                     return;   // DB has been seeded
                 }
+
+                var defaultImage = File.ReadAllBytes(Directory.GetCurrentDirectory() + "\\noimage.png");
 
                 context.Movie.AddRange(
                     new Movie

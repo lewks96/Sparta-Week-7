@@ -1,4 +1,4 @@
-﻿@model MvcMovie.Models.Movie
+﻿@model MvcMovie.Models.DTO.MovieDTO
 
 @{
     ViewData["Title"] = "Details";
@@ -9,9 +9,9 @@
 <div>
     <h4>Movie</h4>
     <hr />
-    <dl class="dl-horizontal">
-        <img width="500" src="@Url.Action("RenderImage", new { id = Model.Id })" />
-    </dl>
+    
+    <img width="250" src="@Url.Action("RenderImage", new { id = Model.Id })" />
+    
     <dl class="row">
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Title)
@@ -28,14 +28,20 @@
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Genre)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Genre)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Price)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Price)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Rating)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Rating)
         </dd>
     </dl>
 </div>
